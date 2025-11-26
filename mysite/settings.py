@@ -32,8 +32,10 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = ['*']
 
 # Security settings for production (not for testing)
+# Note: SECURE_SSL_REDIRECT is disabled because Cloud Run handles HTTPS termination
+# The proxy already serves the site over HTTPS, so forcing redirect would cause loops
 if not DEBUG and not TESTING:
-    SECURE_SSL_REDIRECT = True
+    # SECURE_SSL_REDIRECT = True  # Disabled for Cloud Run
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000  # 1 year
