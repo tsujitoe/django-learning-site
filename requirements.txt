@@ -1,6 +1,10 @@
 asgiref==3.8.1
+backports.zoneinfo==0.2.1
 django==4.2.26
+gunicorn==23.0.0
+packaging==25.0
 python-decouple==3.8
 sqlparse==0.5.3
 typing-extensions==4.13.2
 tzdata==2025.2
+whitenoise==6.7.0
