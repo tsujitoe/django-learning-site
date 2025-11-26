@@ -1,0 +1,34 @@
+name: Django CI
+
+# 觸發時機：當有人 push 或 pull_request 到 main 分支時
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    # 機器人運行的環境 (Linux)
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. 機器人先把你的程式碼抓下來
+    - uses: actions/checkout@v4
+
+    # 2. 設定 Python 環境 (這裡設 3.10，可依需求調整)
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    # 3. 安裝你專案需要的套件
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # 4. 執行測試 (這就是我們剛剛在本機跑的那個指令)
+    - name: Run Tests
+      run: |
+        python manage.py test
