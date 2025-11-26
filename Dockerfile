@@ -12,6 +12,7 @@ ENV PYTHONUNBUFFERED=1
 # 4. 安裝系統依賴 (有些 Python 套件需要編譯工具)
 RUN apt-get update && apt-get install -y \
     gcc \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # 5. 複製依賴清單並安裝

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}登入 - 圖片庫{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-5">
+                <h2 class="text-center mb-4">登入</h2>
+                
+                <!-- Email 登入表單 -->
+                <form method="post" action="{% url 'account_login' %}">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.login.id_for_label }}" class="form-label">Email</label>
+                        <input type="email" 
+                               class="form-control {% if form.login.errors %}is-invalid{% endif %}" 
+                               id="{{ form.login.id_for_label }}" 
+                               name="{{ form.login.html_name }}"
+                               placeholder="請輸入您的 Email"
+                               value="{{ form.login.value|default:'' }}"
+                               required>
+                        {% if form.login.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.login.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.password.id_for_label }}" class="form-label">密碼</label>
+                        <input type="password" 
+                               class="form-control {% if form.password.errors %}is-invalid{% endif %}" 
+                               id="{{ form.password.id_for_label }}" 
+                               name="{{ form.password.html_name }}"
+                               placeholder="請輸入您的密碼"
+                               required>
+                        {% if form.password.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.password.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" 
+                               class="form-check-input" 
+                               id="{{ form.remember.id_for_label }}" 
+                               name="{{ form.remember.html_name }}">
+                        <label class="form-check-label" for="{{ form.remember.id_for_label }}">
+                            記住我
+                        </label>
+                    </div>
+                    
+                    {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                    {% endif %}
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">登入</button>
+                    </div>
+                </form>
+                
+                <hr class="my-4">
+                
+                <div class="text-center">
+                    <p class="mb-0">還沒有帳號？ <a href="{% url 'account_signup' %}">立即註冊</a></p>
+                    <p class="mt-2 mb-0"><a href="{% url 'account_reset_password' %}">忘記密碼？</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
