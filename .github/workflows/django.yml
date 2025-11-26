@@ -2,7 +2,7 @@ name: Django CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "**" ]
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
@@ -34,6 +34,7 @@ jobs:
   # 第二個任務：部署到 GCP (只有測試通過才會執行)
   deploy:
     needs: test # 依賴關係：必須等 test 成功才跑 deploy
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
