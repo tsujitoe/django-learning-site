@@ -31,6 +31,12 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = ['*']
 
+# CSRF settings for Cloud Run
+CSRF_TRUSTED_ORIGINS = [
+    'https://django-service-jukgut67fa-de.a.run.app',
+    'https://*.a.run.app',  # Allow all Cloud Run domains
+]
+
 # Security settings for production (not for testing)
 # Note: SECURE_SSL_REDIRECT is disabled because Cloud Run handles HTTPS termination
 # The proxy already serves the site over HTTPS, so forcing redirect would cause loops
@@ -39,7 +45,7 @@ if not DEBUG and not TESTING:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000  # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_INCLUDE_SUBDOMIANS = True
     SECURE_HSTS_PRELOAD = True
 
 

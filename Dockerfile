@@ -22,6 +22,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 6. 複製專案所有程式碼進去
 COPY . /app/
 
+# 6.5. 收集靜態檔案（使用臨時的 SECRET_KEY）
+RUN SECRET_KEY=temp_key_for_collectstatic python manage.py collectstatic --noinput
+
 # 7. 告訴 Docker 這個容器會用哪個 Port (Cloud Run 預設用 8080)
 EXPOSE 8080
 
