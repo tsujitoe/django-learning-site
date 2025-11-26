@@ -1,36 +1,72 @@
-name: Django CI
+name: Django CI/CD
 
-# 觸發時機：當有人 push 或 pull_request 到 main 分支時
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: asia-east1
+  REPO_NAME: my-repo
+  SERVICE_NAME: django-service
+  IMAGE_NAME: django-app
 
 jobs:
-  build:
-    # 機器人運行的環境 (Linux)
+  # 第一個任務：跑測試 (跟之前一樣)
+  test:
     runs-on: ubuntu-latest
-
     steps:
-    # 1. 機器人先把你的程式碼抓下來
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run Tests
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        run: |
+          python manage.py test
 
-    # 2. 設定 Python 環境 (這裡設 3.10，可依需求調整)
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
+  # 第二個任務：部署到 GCP (只有測試通過才會執行)
+  deploy:
+    needs: test # 依賴關係：必須等 test 成功才跑 deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-    # 3. 安裝你專案需要的套件
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      # 1. 登入 GCP (使用剛剛存的 JSON Key)
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-    # 4. 執行測試 (這就是我們剛剛在本機跑的那個指令)
-    - name: Run Tests
-      env:  # <--- 新增這段
-        SECRET_KEY: ${{ secrets.SECRET_KEY }} # 告訴機器人去 Secrets 拿鑰匙
-      run: |
-        python manage.py test
+      # 2. 設定 Docker 使用 GCP 的權限
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: 'Docker auth'
+        run: |-
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      # 3. 打包 Docker Image 並推送到 GCP 倉庫
+      # 我們使用 GITHUB_SHA (Commit ID) 當作版本號，這樣每次版號都不一樣
+      - name: 'Build and Push Container'
+        run: |-
+          docker build -t "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}" .
+          docker push "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+
+      # 4. 部署到 Cloud Run
+      - name: 'Deploy to Cloud Run'
+        uses: 'google-github-actions/deploy-cloudrun@v2'
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          flags: '--allow-unauthenticated'
+          env_vars: |
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
+            DEBUG=False
