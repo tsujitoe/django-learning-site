@@ -30,7 +30,7 @@ jobs:
 
     # 4. 執行測試 (這就是我們剛剛在本機跑的那個指令)
     - name: Run Tests
-        env:  # <--- 新增這段
-            SECRET_KEY: ${{ secrets.SECRET_KEY }} # 告訴機器人去 Secrets 拿鑰匙
-        run: |
-            python manage.py test
+      env:  # <--- 新增這段
+        SECRET_KEY: ${{ secrets.SECRET_KEY }} # 告訴機器人去 Secrets 拿鑰匙
+      run: |
+        python manage.py test
